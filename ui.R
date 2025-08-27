@@ -2,7 +2,7 @@ library(shiny)
 #library(shinythemes)# Load the library
 #library(thematic)
 
-Thisversion <- "0.992ax4"
+Thisversion <- "0.992bx4"
 thematic::thematic_shiny()
 
 fluidPage(                       # Setup the UI page
@@ -260,10 +260,11 @@ fluidPage(                       # Setup the UI page
                                    tags$br(),
                                     "More detailed ", tags$a (href="https://github.com/drclongstaff/Thrombin_Generation_Assays/blob/master/Docs/TGA_help_notes_ver_9.pdf",target="_blank", "help notes"),
                                    "and the code can be found on my github site:", 
-                                   tags$a (href="https://github.com/drclongstaff/Thrombin_Generation_Assays", "here"),
+                                   tags$a (href="https://github.com/drclongstaff/thrombin_generation", "here"),
                                    tags$br(),
                                    "Other apps and links for reproducible analysis in haemostasis assays are available",
-                                   tags$a (href="https://drclongstaff.github.io/shiny-clots/", "here")
+                                   tags$a (href="https://drclongstaff.github.io/shiny-clots/", "here"), "and please check out the",
+                                   tags$a(href="https://www.youtube.com/@colinlongstaff7270", "Youtube channel of help videos")
                ))
       )
     
