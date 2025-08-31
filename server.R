@@ -16,7 +16,7 @@ load_file <- function(NAME, PATH, SHEET, SKIP){
   switch(ext,
          xlsx= read_excel(PATH, SHEET, skip = SKIP),
          csv = vroom(PATH, delim = ",", show_col_types = FALSE),
-         tsv = vroom(PATH, delim = "\t"),
+         tsv = vroom(PATH, delim = "\t", show_col_types = FALSE),
          txt = vroom(PATH, show_col_types = FALSE),
          validate("Invalid file. Please upload a .csv or .txt file")
   )
