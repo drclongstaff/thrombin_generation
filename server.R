@@ -2,8 +2,10 @@ library(shiny)                             # Load the Shiny library
 library(dplyr)
 library(tibble)
 library(purrr)
-library(readxl)
 library(janitor)
+library(readxl)
+library(vroom)
+
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
 
@@ -13,9 +15,9 @@ load_file <- function(NAME, PATH, SHEET, SKIP){
   ext <- tools::file_ext(NAME)
   switch(ext,
          xlsx= read_excel(PATH, SHEET, skip = SKIP),
-         csv = vroom::vroom(PATH, delim = ",", show_col_types = FALSE),
-         tsv = vroom::vroom(PATH, delim = "\t"),
-         txt = vroom::vroom(PATH, show_col_types = FALSE),
+         csv = vroom(PATH, delim = ",", show_col_types = FALSE),
+         tsv = vroom(PATH, delim = "\t"),
+         txt = vroom(PATH, show_col_types = FALSE),
          validate("Invalid file. Please upload a .csv or .txt file")
   )
 }
