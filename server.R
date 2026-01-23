@@ -4,20 +4,6 @@ library(shiny)                             # Load the Shiny library
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
 
-
-#This function is for loading user data
-load_file_old <- function(NAME, PATH, SHEET, SKIP){
-  
-  ext <- tools::file_ext(NAME)
-  switch(ext,
-         xlsx= read_excel(PATH, SHEET, skip = SKIP),
-         csv = vroom(PATH, delim = ",", show_col_types = FALSE),
-         tsv = vroom(PATH, delim = "\t", show_col_types = FALSE),
-         txt = vroom(PATH, show_col_types = FALSE),
-         validate("Invalid file. Please upload a .csv or .txt file")
-  )
-}
-
 #Function to fit an N order polynomial
 fun_POLYN <- function(X, Y){
   Fitpoly<-lm(Y~poly(X, 4, raw = TRUE)) #select the order of polynomial
