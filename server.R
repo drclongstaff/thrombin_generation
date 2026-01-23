@@ -127,7 +127,11 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     read.csv("./Data/CalibratorsA.csv")
     else(
       load_file(input$data0$name, input$data0$datapath, input$sheetc, input$skipc) %>% 
-        clean_names() %>% as.data.frame()
+        clean_names() %>% 
+        remove_empty( which=c("rows", "cols"), 
+                      cutoff=1, quiet=TRUE) |> #remove empty cols and rows
+        sapply( \(x) replace(x, x  %in% "", NA)) |> #replace empty cells with NA
+        as.data.frame()
     )
     
   })
