@@ -1,8 +1,16 @@
 library(shiny)
+library(dplyr)
+library(tibble)
+library(purrr)
+library(janitor)
+library(readxl)
+library(vroom)
+
 # library(shinythemes)# Load the library
 # library(thematic)
 
 source("./Functions/Session_info.R")
+
 Thisversion <- "0.993cx4"
 thematic::thematic_shiny()
 

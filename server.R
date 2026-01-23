@@ -1,13 +1,9 @@
 library(shiny)                             # Load the Shiny library
-library(dplyr)
-library(tibble)
-library(purrr)
-library(janitor)
-library(readxl)
-library(vroom)
+
 
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
+
 
 #This function is for loading user data
 load_file <- function(NAME, PATH, SHEET, SKIP){
