@@ -165,7 +165,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   #CalibDat is the selected calibration curve
   CalibDat<-reactive({
-    #CalibDat<-data.frame("Time"= CalibF()[1:input$limitD,1], "F"=CalibF()[1:input$limitD, input$calCols])
+    req(CalibF())
    CalibDat <- data.frame("Time"=CalibF()[[1]], "F"=CalibF()[[input$calCols]])
   })
   
@@ -242,7 +242,8 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
    #Graph of fitted calibrator 
    #changed CalibDat to CalibF 
   output$myCalib<-renderPlot({
-    if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
+    req(CalibDat())
+    #if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
     minX <- as.double(min(CalibDat()[1], na.rm = TRUE))
     minY <- as.double(min(CalibDat()[2], na.rm = TRUE))
     maxX <- as.double(max(CalibDat()[1], na.rm = TRUE))
@@ -261,7 +262,8 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   #Calibrator-test of fitting-plots
   output$mytest <- renderPlot({
-    if(is.null(input$calCols)){return(NULL)}
+    req(CalibDat())
+    #if(is.null(CalibDat())){return(NULL)}
     par(mfrow = c(2,2))  # Split the plotting panel into a 2 x 2 grid
     #Fit the polynomial again to get the $fitted and $residuals and plot
     Yobs<-CalibDat()[, 2]
@@ -290,8 +292,11 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     read.csv("./Data/NewDat3.csv")#[c(1, 2:29)]
     else(
       load_file(input$data1$name, input$data1$datapath, input$sheetd, input$skipd) %>% 
-        #load_file(input$data1$datapath) %>% 
-        clean_names() %>% as.data.frame()
+        clean_names() %>%
+        remove_empty( which=c("rows", "cols"), 
+                              cutoff=1, quiet=TRUE) |> #remove empty cols and rows
+        sapply( \(x) replace(x, x  %in% "", NA)) |> #replace empty cells with NA
+        as.data.frame()
     )
     
   })
