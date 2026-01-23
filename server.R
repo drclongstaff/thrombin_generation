@@ -6,7 +6,7 @@ options(shiny.maxRequestSize=30*1024^2)
 
 
 #This function is for loading user data
-load_file <- function(NAME, PATH, SHEET, SKIP){
+load_file_old <- function(NAME, PATH, SHEET, SKIP){
   
   ext <- tools::file_ext(NAME)
   switch(ext,
