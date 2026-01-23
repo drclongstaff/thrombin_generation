@@ -2,7 +2,7 @@ library(shiny)
 # library(shinythemes)# Load the library
 # library(thematic)
 
-Thisversion <- "0.992cx4"
+Thisversion <- "0.993cx4"
 thematic::thematic_shiny()
 
 fluidPage( # Setup the UI page
@@ -14,6 +14,7 @@ fluidPage( # Setup the UI page
   titlePanel("Thrombin Generation Assays"),
   sidebarLayout(
     sidebarPanel(
+      style = "background: #FFF6FB",
       tags$h3("Calibrator Data"),
       fluidRow(
         column(8, fileInput("data0", label = "calibrator csv, txt or xlsx")),
@@ -123,6 +124,14 @@ fluidPage( # Setup the UI page
             column(6, tags$h5("Data file"), uiOutput("fileset"))
           ),
           tableOutput("settings"),
+          tags$h4("Packages and versions"),
+          textOutput("text4"),
+          fluidRow(
+            column(3, tags$h5("Base packages:")),
+            column(9, tags$h5(textOutput("text5")))
+          ),
+          tags$h5("Other packages"),
+          tableOutput("session"),
           align = "center"
         ),
         tabPanel(
