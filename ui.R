@@ -12,7 +12,7 @@ library(vroom)
 source("./Functions/Session_info.R")
 source("./Functions/Load_file.R")
 
-Thisversion <- "0.993cx4"
+Thisversion <- "0.993dx4"
 thematic::thematic_shiny()
 
 fluidPage( # Setup the UI page
@@ -142,7 +142,7 @@ fluidPage( # Setup the UI page
           ),
           tags$h5("Other packages"),
           tableOutput("session"),
-          align = "center"
+          #align = "center"
         ),
         tabPanel(
           "Help",
