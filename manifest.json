@@ -2203,6 +2203,12 @@
     "Data/README.md": {
       "checksum": "1eae84c33c6541fd641d88c70377790b"
     },
+    "Functions/Load_file.R": {
+      "checksum": "2edbe98cd5627723747e0167fd4ccece"
+    },
+    "Functions/Session_info.R": {
+      "checksum": "f95ada1dc5b63a27615399a5590478e3"
+    },
     "LICENSE": {
       "checksum": "0fd93bf0d64409d957fa91cf78c61f4e"
     },
@@ -2210,10 +2216,10 @@
       "checksum": "32da7679f3cd43399f77a5c2934d92d3"
     },
     "server.R": {
-      "checksum": "ae0b856f932f30e3903b020bef047159"
+      "checksum": "786952def108228cd489edd0f841ee64"
     },
     "ui.R": {
-      "checksum": "067e239305e3eb430d1de3dd57a4aac1"
+      "checksum": "55b42570a0269b361b553eb8e296aaf3"
     }
   },
   "users": null
