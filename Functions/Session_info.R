@@ -1,7 +1,6 @@
 #Function to gather version info
 
-# Get session info
-session <- sessionInfo()
+# Get session infosession <- sessionInfo()
 
 # Extract R version
 r_version <- session$R.version$version.string

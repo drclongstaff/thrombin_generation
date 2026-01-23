@@ -2,6 +2,7 @@ library(shiny)
 # library(shinythemes)# Load the library
 # library(thematic)
 
+source("./Functions/Session_info.R")
 Thisversion <- "0.993cx4"
 thematic::thematic_shiny()
 
