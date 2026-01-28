@@ -12,6 +12,7 @@ library(vroom)
 source("./Functions/Session_info.R")
 source("./Functions/Load_file.R")
 source("./Functions/Polynomials.R")
+source("./Functions/Deriv_curve_analysis.R")
 
 Thisversion <- "1.001dx4"
 thematic::thematic_shiny()
