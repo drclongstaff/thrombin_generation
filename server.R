@@ -4,25 +4,7 @@ library(shiny)                             # Load the Shiny library
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
 
-#Function to fit an N order polynomial
-fun_POLYN <- function(X, Y){
-  Fitpoly<-lm(Y~poly(X, 4, raw = TRUE)) #select the order of polynomial
-}
 
-#Function to zero columns
-Zerod_fun <- function(n){n-n[1]}
-
-#Function to generate coefficients
-fun_coeffs <- function(Ti, Fl){
-  fitPoly <- fun_POLYN(Ti, Fl)
-  fitPoly$coefficients
-}
-
-#Function to generate response from fitted coefficients
-fun_eval <- function(x, A, B, C, D, E){
-  g <- expression(A+B*x+C*x^2+D*x^3+E*x^4)
-  genF <- eval(g)
-}
 
 uppy<-function(curve, Timedf, pclag){
   
@@ -155,7 +137,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   #CalibDat is the selected calibration curve
   CalibDat<-reactive({
-    req(CalibF())
+    #req(CalibF())
    CalibDat <- data.frame("Time"=CalibF()[[1]], "F"=CalibF()[[input$calCols]])
   })
   
@@ -232,7 +214,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
    #Graph of fitted calibrator 
    #changed CalibDat to CalibF 
   output$myCalib<-renderPlot({
-    req(CalibDat())
+    #req(CalibDat())
     #if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
     minX <- as.double(min(CalibDat()[1], na.rm = TRUE))
     minY <- as.double(min(CalibDat()[2], na.rm = TRUE))
@@ -252,7 +234,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   #Calibrator-test of fitting-plots
   output$mytest <- renderPlot({
-    req(CalibDat())
+    #req(CalibDat())
     #if(is.null(CalibDat())){return(NULL)}
     par(mfrow = c(2,2))  # Split the plotting panel into a 2 x 2 grid
     #Fit the polynomial again to get the $fitted and $residuals and plot

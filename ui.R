@@ -11,8 +11,9 @@ library(vroom)
 
 source("./Functions/Session_info.R")
 source("./Functions/Load_file.R")
+source("./Functions/Polynomials.R")
 
-Thisversion <- "0.993dx4"
+Thisversion <- "1.001dx4"
 thematic::thematic_shiny()
 
 fluidPage( # Setup the UI page
