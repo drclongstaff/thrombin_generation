@@ -6,7 +6,6 @@ options(shiny.maxRequestSize=30*1024^2)
 shinyServer(function(input, output) {      # Set up the Shiny Server
   
   ###CALIBRATOR DATA
-  
   #Load calibrator data
   CalibF0<-reactive({
     inputFile <- input$data0
@@ -175,7 +174,6 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   
   ###TEST DATA
-  
   ##Read raw fluorescence data
   RawF0 <- reactive({
     inputFile <- input$data1
@@ -201,6 +199,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     req(input$select_samples, RawF0())
     colnames(data())[select_samples()]
   })
+  
   #This is truncated or columns chosen 
   #and is responsive when the truncation is changed
   RawF <- reactive({
@@ -208,10 +207,8 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     RawF1 <- RawF0A[1:(nrow(RawF0())-input$truncpoints),]
   })
   
-  
   output$value <- renderUI({ print(14) })
  
-  
    #This is for the settings table state calibrators 
   output$calset<- renderUI({
     inputFile <- input$data0$name
@@ -230,12 +227,10 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
 
   
   ##Corrections for raw data using polynomial function above
-  
   RawFP <- reactive ({
     RawF <- RawF()
     plateFP<-RawF[-1] %>%  
       map_df(~fun_poly(.x)) %>% add_column(RawF[,1], .before = 1) %>% as.data.frame()
-    
   })
  
   #These are the plots of raw data with or without polynomial correction
@@ -285,112 +280,57 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   #As raw fluorescence diff or converted to thrombin or with subtracted T-a2M
   #With or without smoothing
   readData <- reactive({
-    plateF <- RawF()
     
+    #Use raw fluorescence or with polynomial correction
     switch(input$Transf,
-           "none"=plateFC<-plateF,
-            "Polynomial"=plateFC<-RawFP()) 
-    #Tdif<-plateFC[,1][-1]
-    #T1 <- plateF[[1]]
-    plateFd<-plateFC[-1] %>%  
+           "none"=plateFC<-RawF(),
+            "Polynomial"=plateFC<-RawFP()
+           ) 
+    #The first derivative curves
+    plateFd<-plateFC[-1] %>%  #select the raw fluorescent curves to make derivatives (d)
       map_df(~fun_diff(.x, plateFC)) %>% add_column(plateFC[,1][-1], .before = 1) %>% as.data.frame()
-    
+    #The first derivative curves are converted to thrombin (T)
     plateFdT <- plateFd[-1] %>% 
       map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateFd[[1]], .before = 1) %>% as.data.frame()
-    
-    #Late smoothing
-    #lateTimepoint <- length(Tdif)-input$smtail
-    #lateTime <- Tdif[lateTimepoint]
-    fun_latesmooth2<-function(ps){
-      smoothfit<-supsmu(Tdif, ps)
-      ifelse(Tdif>lateTime, smoothfit$y, ps)
-    }
-    
+    #The Thrombin curves with late smoothing
     plateFdTs <- plateFdT[-1] %>% 
       map_df(~fun_latesmooth(.x, plateFdT,input$smtail )) %>% add_column(plateFdT[[1]], .before = 1) %>% as.data.frame()
-   
-    #all smoothing
-    
-    fun_allsmooth2 <- function(as){
-      smoothfit <- supsmu(Tdif, as)
-      smoothfit$y
-    }
-    
+    #The thrombin curves with all smoothing
     plateFdTa <- plateFdT[-1] %>% 
       map_df(~fun_allsmooth(.x, plateFdT)) %>% add_column(plateFdT[[1]], .before = 1) %>% as.data.frame()
-    
-    
-    #6. Alpha-2-M correction
-    fun_TGcorr2<-function(M){
-      endTimepoint <- length(M)
-      lateTimepoint <- length(M)-input$smtail
-      lateTime <- Tdif[lateTimepoint]
-      endVal<-mean(M[lateTimepoint:endTimepoint])
-      Fdummy<-rep(endVal, length(Tdif))
-      Fnew<-ifelse(Tdif>lateTime, Fdummy, M)
-      FTm<-endVal*(cumsum(Fnew[1:lateTimepoint])/max(cumsum(Fnew[1:lateTimepoint])))
-      Fdummy[1:lateTimepoint]<-FTm
-      M-Fdummy
-    }
-    
+    #The late smooth Thrombin curves with correction for alpha2M
     plateFdTsM <- plateFdTs[-1] %>% 
       map_df(~fun_TGcorr(.x, plateFdTs, input$smtail)) %>% add_column(plateFdTs[[1]], .before = 1) %>% as.data.frame()
     
+    #Which curve to be displayed
     switch(input$a2Mcor, 
-           #"Raw" = plateF,
-           "F"=plateN <- plateFd, 
-           "Thrombin"=plateN <- plateFdT,
-           "Smooth.all" = plateN <- plateFdTa, # allsmooth here?
-           "Smooth.tail" = plateN <- plateFdTs, # latesmooth here?
+           "F"=plateN <- plateFd, #first derivative of fluorescence
+           "Thrombin"=plateN <- plateFdT, #converted to thrombin
+           "Smooth.all" = plateN <- plateFdTa,#allsmooth curve?
+           "Smooth.tail" = plateN <- plateFdTs, #latesmooth curve?
            "-T-alpha-2M" = plateN <- plateFdTsM)
-    
     #write_clip(plateN)
     plateN
     
   })
   
-  #The T-alpha-2-M-curve
-  
+  #Generate the T-alpha-2-M-curve
   a2MData <- reactive({
-    plateM <- RawF()
+    #plateM <- RawF() #start with fluorescence data
     
     switch(input$Transf,
-           "none"=plateMC<-plateM,
+           "none"=plateMC<-RawF(),
           # "H-transform"=plateMC<-RawFH(),
-           "Polynomial"=plateMC<-RawFP()) 
-    #theTime <-RawF()[,1]
-    Tdif<-plateMC[,1][-1]
-    plateMdT <- plateMC[-1]  %>%  map_df(~fun_diff(.x, plateMC)) %>% map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateMC[,1][-1], .before = 1) %>% as.data.frame()
-    
-    #latePoint <- input$smtail
-    fun_TaM2<-function(C){
-      Tdif<-plateMC[,1][-1]
-      endTimepoint <- length(C)
-      lateTimepoint <- length(C)-input$smtail
-      lateTime <- Tdif[lateTimepoint]
-      endVal<-mean(C[lateTimepoint:endTimepoint])
-      Fdummy<-rep(endVal, length(Tdif))
-      Fnew<-ifelse(Tdif>lateTime, Fdummy, C)
-      FTm<-endVal*(cumsum(Fnew[1:lateTimepoint])/max(cumsum(Fnew[1:lateTimepoint])))
-      Fdummy[1:lateTimepoint]<-FTm
-      Fdummy
-    }
-    
-    plateMdTM <- plateMdT[-1] %>% map_df(~fun_TaM(.x, plateMdT, input$smtail)) %>% add_column(plateMdT[[1]], .before = 1) %>% as.data.frame()
-    
+           "Polynomial"=plateMC<-RawFP()
+          ) 
+    #Convert raw fluorescence before or after polynomial correction to derivative->thrombin
+    plateMdT <- plateMC[-1]  %>%  
+      map_df(~fun_diff(.x, plateMC)) %>% map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateMC[,1][-1], .before = 1) %>% as.data.frame()
+    #Use the drivative->thrombin curve to make the alpha2M curve
+    plateMdTM <- plateMdT[-1] %>% 
+      map_df(~fun_TaM(.x, plateMdT, input$smtail)) %>% add_column(plateMdT[[1]], .before = 1) %>% as.data.frame()
   })
-  
-  #First derivative of raw fluorescence for plotting
-  platedT <- reactive({
-    plateF <- RawF()
-    
-    #theTime <-RawF()[,1]
-    Tdif<-plateF[,1][-1]
-    plateFdT <- plateF[-1]  %>%  map_df(~fun_diff(.x, plateF)) %>% map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateF[,1][-1], .before = 1) %>% as.data.frame()
-  })
-  
  
-  
 ###DO THE ANALYSIS ON THE CURVES
   ##Various functions
   
