@@ -1,12 +1,7 @@
 library(shiny)                             # Load the Shiny library
 
-
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
-
-
-
-
 
 shinyServer(function(input, output) {      # Set up the Shiny Server
   
@@ -34,7 +29,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     sel <- as.numeric(strsplit(input$select_cols, ",")[[1]])
     sel
   })
-  #make list of removed wells to show
+  #make list of wells to show
   col_names <- reactive({
     req(input$select_cols, data())
     colnames(data())[select_cols()]
@@ -126,7 +121,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
  CalibThrombin <- reactive ({
    CalibThrombin<-CalibDat()[-1] %>%  
     map_df(~fun_poly(.x)) %>% 
-    map_df(~fun_FtoT(.x)) %>% 
+    map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% 
     add_column(CalibDat()[,1], .before = 1) %>% as.data.frame()
    diffres <- diff(CalibThrombin[,2])/diff(CalibThrombin[,1])
    Tdiff <- CalibThrombin[,1][-1]
@@ -201,7 +196,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     sel <- as.numeric(strsplit(input$select_samples, ",")[[1]])
     sel
   })
-  #make list of removed wells to show
+  #make list of wells to show
   samples_names <- reactive({
     req(input$select_samples, RawF0())
     colnames(data())[select_samples()]
@@ -237,7 +232,9 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   ##Corrections for raw data using polynomial function above
   
   RawFP <- reactive ({
-    plateFP<-RawF()[-1] %>%  map_df(~fun_poly(.x)) %>% add_column(RawF()[,1], .before = 1) %>% as.data.frame()
+    RawF <- RawF()
+    plateFP<-RawF[-1] %>%  
+      map_df(~fun_poly(.x)) %>% add_column(RawF[,1], .before = 1) %>% as.data.frame()
     
   })
  
@@ -283,27 +280,6 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     colnames(Pco)<-c("x0", "x1", "x2", "x3") #"x4")#, "x5"
     formatC(Pco)
   })
-  
-  
-  ##More transformations
-  
-  #Make the derivative curves
-  
- 
-  
-  fun_diff<-function(d1, plateF){
-    t1 <- plateF[[1]]
-    res<-diff(d1)/diff(t1)
-    res
-  }
-  
-  #Converting Fluorescence to Thrombin
-  
-  fun_FtoT<-function(Th){
-    
-    nowT<-input$CalibT*(Th/input$calSlope)
-  }
- 
  
   #Generates the type of raw data
   #As raw fluorescence diff or converted to thrombin or with subtracted T-a2M
@@ -314,33 +290,38 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     switch(input$Transf,
            "none"=plateFC<-plateF,
             "Polynomial"=plateFC<-RawFP()) 
-    Tdif<-plateFC[,1][-1]
+    #Tdif<-plateFC[,1][-1]
     #T1 <- plateF[[1]]
-    plateFd<-plateFC[-1] %>%  map_df(~fun_diff(.x, plateFC)) %>% add_column(plateFC[,1][-1], .before = 1) %>% as.data.frame()
-    plateFdT <- plateFd[-1] %>% map_df(~fun_FtoT(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFd<-plateFC[-1] %>%  
+      map_df(~fun_diff(.x, plateFC)) %>% add_column(plateFC[,1][-1], .before = 1) %>% as.data.frame()
+    
+    plateFdT <- plateFd[-1] %>% 
+      map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateFd[[1]], .before = 1) %>% as.data.frame()
     
     #Late smoothing
-    lateTimepoint <- length(Tdif)-input$smtail
-    lateTime <- Tdif[lateTimepoint]
-    fun_latesmooth<-function(ps){
+    #lateTimepoint <- length(Tdif)-input$smtail
+    #lateTime <- Tdif[lateTimepoint]
+    fun_latesmooth2<-function(ps){
       smoothfit<-supsmu(Tdif, ps)
       ifelse(Tdif>lateTime, smoothfit$y, ps)
     }
     
-    plateFdTs <- plateFdT[-1] %>% map_df(~fun_latesmooth(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFdTs <- plateFdT[-1] %>% 
+      map_df(~fun_latesmooth(.x, plateFdT,input$smtail )) %>% add_column(plateFdT[[1]], .before = 1) %>% as.data.frame()
    
     #all smoothing
     
-    fun_allsmooth <- function(as){
+    fun_allsmooth2 <- function(as){
       smoothfit <- supsmu(Tdif, as)
       smoothfit$y
     }
     
-    plateFdTa <- plateFdT[-1] %>% map_df(~fun_allsmooth(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFdTa <- plateFdT[-1] %>% 
+      map_df(~fun_allsmooth(.x, plateFdT)) %>% add_column(plateFdT[[1]], .before = 1) %>% as.data.frame()
     
     
     #6. Alpha-2-M correction
-    fun_TGcorr<-function(M){
+    fun_TGcorr2<-function(M){
       endTimepoint <- length(M)
       lateTimepoint <- length(M)-input$smtail
       lateTime <- Tdif[lateTimepoint]
@@ -352,7 +333,8 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
       M-Fdummy
     }
     
-    plateFdTsM <- plateFdTs[-1] %>% map_df(~fun_TGcorr(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFdTsM <- plateFdTs[-1] %>% 
+      map_df(~fun_TGcorr(.x, plateFdTs, input$smtail)) %>% add_column(plateFdTs[[1]], .before = 1) %>% as.data.frame()
     
     switch(input$a2Mcor, 
            #"Raw" = plateF,
@@ -378,10 +360,10 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
            "Polynomial"=plateMC<-RawFP()) 
     #theTime <-RawF()[,1]
     Tdif<-plateMC[,1][-1]
-    plateMdT <- plateMC[-1]  %>%  map_df(~fun_diff(.x, plateMC)) %>% map_df(~fun_FtoT(.x)) %>% add_column(plateMC[,1][-1], .before = 1) %>% as.data.frame()
+    plateMdT <- plateMC[-1]  %>%  map_df(~fun_diff(.x, plateMC)) %>% map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateMC[,1][-1], .before = 1) %>% as.data.frame()
     
     #latePoint <- input$smtail
-    fun_TaM<-function(C){
+    fun_TaM2<-function(C){
       Tdif<-plateMC[,1][-1]
       endTimepoint <- length(C)
       lateTimepoint <- length(C)-input$smtail
@@ -394,7 +376,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
       Fdummy
     }
     
-    plateMdTM <- plateMdT[-1] %>% map_df(~fun_TaM(.x)) %>% add_column(plateMdT[[1]], .before = 1) %>% as.data.frame()
+    plateMdTM <- plateMdT[-1] %>% map_df(~fun_TaM(.x, plateMdT, input$smtail)) %>% add_column(plateMdT[[1]], .before = 1) %>% as.data.frame()
     
   })
   
@@ -404,7 +386,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     
     #theTime <-RawF()[,1]
     Tdif<-plateF[,1][-1]
-    plateFdT <- plateF[-1]  %>%  map_df(~fun_diff(.x, plateF)) %>% map_df(~fun_FtoT(.x)) %>% add_column(plateF[,1][-1], .before = 1) %>% as.data.frame()
+    plateFdT <- plateF[-1]  %>%  map_df(~fun_diff(.x, plateF)) %>% map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateF[,1][-1], .before = 1) %>% as.data.frame()
   })
   
  
