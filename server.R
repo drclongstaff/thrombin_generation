@@ -206,19 +206,13 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     req(input$select_samples, RawF0())
     colnames(data())[select_samples()]
   })
-##Try zeroing each column like the calibrator
   #This is truncated or columns chosen 
   #and is responsive when the truncation is changed
   RawF <- reactive({
-    #RawF0A <- RawF0()
-    #RawF0A <- RawF0()[c(1, input$datstart:input$datend)]
     RawF0A <- RawF0()[c(1, select_samples())]
     RawF1 <- RawF0A[1:(nrow(RawF0())-input$truncpoints),]
-    #RawF <- lapply(RawF1, function(n) Zerod_fun(n)) |> data.frame()
-    #RawF <- data.frame(cbind("Time"=RawF1[[1]], RawF1[-1]-rowMeans(RawF1[-1])[1]))
   })
   
- #Put mfrow code here
   
   output$value <- renderUI({ print(14) })
  
@@ -295,8 +289,11 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   #Make the derivative curves
   
-  fun_diff<-function(d1){
-    res<-diff(d1)/diff(RawF()[[1]])
+ 
+  
+  fun_diff<-function(d1, plateF){
+    t1 <- plateF[[1]]
+    res<-diff(d1)/diff(t1)
     res
   }
   
@@ -319,7 +316,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
             "Polynomial"=plateFC<-RawFP()) 
     Tdif<-plateFC[,1][-1]
     #T1 <- plateF[[1]]
-    plateFd<-plateFC[-1] %>%  map_df(~fun_diff(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFd<-plateFC[-1] %>%  map_df(~fun_diff(.x, plateFC)) %>% add_column(plateFC[,1][-1], .before = 1) %>% as.data.frame()
     plateFdT <- plateFd[-1] %>% map_df(~fun_FtoT(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
     
     #Late smoothing
@@ -381,10 +378,11 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
            "Polynomial"=plateMC<-RawFP()) 
     #theTime <-RawF()[,1]
     Tdif<-plateMC[,1][-1]
-    plateMdT <- plateMC[-1]  %>%  map_df(~fun_diff(.x)) %>% map_df(~fun_FtoT(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateMdT <- plateMC[-1]  %>%  map_df(~fun_diff(.x, plateMC)) %>% map_df(~fun_FtoT(.x)) %>% add_column(plateMC[,1][-1], .before = 1) %>% as.data.frame()
     
     #latePoint <- input$smtail
     fun_TaM<-function(C){
+      Tdif<-plateMC[,1][-1]
       endTimepoint <- length(C)
       lateTimepoint <- length(C)-input$smtail
       lateTime <- Tdif[lateTimepoint]
@@ -396,7 +394,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
       Fdummy
     }
     
-    plateMdTM <- plateMdT[-1] %>% map_df(~fun_TaM(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateMdTM <- plateMdT[-1] %>% map_df(~fun_TaM(.x)) %>% add_column(plateMdT[[1]], .before = 1) %>% as.data.frame()
     
   })
   
@@ -406,7 +404,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
     
     #theTime <-RawF()[,1]
     Tdif<-plateF[,1][-1]
-    plateFdT <- plateF[-1]  %>%  map_df(~fun_diff(.x)) %>% map_df(~fun_FtoT(.x)) %>% add_column(Tdif, .before = 1) %>% as.data.frame()
+    plateFdT <- plateF[-1]  %>%  map_df(~fun_diff(.x, plateF)) %>% map_df(~fun_FtoT(.x)) %>% add_column(plateF[,1][-1], .before = 1) %>% as.data.frame()
   })
   
  
