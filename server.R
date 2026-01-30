@@ -336,35 +336,42 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
   
   TabRes <- reactive({
     
-  #functions uppy and downy are before the server code   
+  #functions uppy and downy perform the calculation on the first derivative curves   
+  pclag<- input$lagChange*0.01 #the % change for start of curve 
+  myData <-readData() #the chosen set of data to analyse
+  Timedf<-myData[,1] #the time column
+  args_list <- list(Timedf, pclag) #arguments for the uppy and downy functions
   
-  pclag<- input$lagChange*0.01 #changes the number to %
-  myDatcorrTaMT <-readData()
-  Timedf<-myDatcorrTaMT[,1]
+  TabResAll<-myData[-1] |> #selected data without time column
+    imap(~{
+      resultsu <- do.call(uppy, c(list(.x), args_list))
+      resultsd <- do.call(downy, c(list(.x), args_list))
+      data.frame(
+        Sample       = .y,
+        FirstReading = resultsu[1],
+        Lag          = resultsu[2],
+        LagReading   = resultsu[3],
+        Peak         = resultsu[8],
+        ttPeak       = resultsu[7],
+        ttTail       = resultsd[2],
+        AUC          = resultsd[7],
+        Startpoint   = resultsu[5],
+        Pointmax     = resultsu[6],
+        Decaypoint   = resultsu[6]+resultsd[5],
+        Minpoint     = resultsd[8],
+        Base         = resultsd[2]-resultsu[2],
+        LagtoPeak    = resultsu[7]-resultsu[2]
+      ) 
+    })|> 
+    list_rbind() |> 
+    mutate(across(where(is.numeric), \(x) round(x, digits=4)))
   
-  TabResShort<-myDatcorrTaMT[-1] %>%  map_df(~ data.frame(Ao=uppy(.x, Timedf, pclag)[1], #2 minAbs= positions in table after column name
-                                                          Lag=uppy(.x, Timedf, pclag)[2], #3 start time
-                                                          AUC=downy(.x, Timedf, pclag)[7], #4 AUC
-                                                          Peak=uppy(.x, Timedf, pclag)[8], #5 max F or thrombin
-                                                          ttPeak=uppy(.x, Timedf, pclag)[7], #6 time to max
-                                                          ttTail=downy(.x, Timedf, pclag)[2], #7 time to decay point (10%)
-                                                          LagReading=uppy(.x, Timedf, pclag)[3], #8 F or Thrombin at lag
-                                                          Startpoint=uppy(.x, Timedf, pclag)[5], #9 point at end of lag
-                                                          Pointmax=uppy(.x, Timedf, pclag)[6], #10 point at max
-                                                          DecayPoint=(uppy(.x, Timedf, pclag)[6])+(downy(.x, Timedf, pclag)[5]), #11 decay point 
-                                                          MinPoint=downy(.x, Timedf, pclag)[8], #12 point to return to baseline
-                                                          Base=(downy(.x, Timedf, pclag)[2]-uppy(.x, Timedf, pclag)[2]), #13 time between lag and return to lag reading
-                                                          LagtoPeak =uppy(.x, Timedf, pclag)[7]-uppy(.x, Timedf, pclag)[2])) %>% #14 time between end of lag and peak
-    add_column(Sample=names(myDatcorrTaMT[-1]), .before = 1)
-  #clipr::write_clip(TabResShort) #REMOVE BEFORE UPLOAD
-  TabResShort
+  TabResAll
+  
   })
   
   output$resultsTable<-renderTable({
-    
-    
-    TabRes()[,c(1:8, 13,14)]
-    
+    TabRes()[,1:8]
   })
   
 output$plotsTable<-renderTable ({
