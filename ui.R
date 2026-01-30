@@ -99,10 +99,10 @@ fluidPage( # Setup the UI page
           radioButtons(
             inputId = "tabRes", label = h4("Select parameter", align = "center"),
             choices = c(
-              "Column names" = 1, "Initial reading" = 2, "Lag time " = 3, "Area under the curve" = 4,
-              "Peak " = 5, "ttPeak" = 6, "ttTail" = 7, "Lag reading" = 8
+              "Sample", "First reading", "Lag time", "Area under the curve",
+              "Peak", "ttPeak", "ttTail", "Lag reading"
             ),
-            selected = 6, inline = TRUE, width = "100%"
+            selected = "Lag time", inline = TRUE, width = "100%"
           ),
           tags$h4("Results from plots"),
           tableOutput("plotsTable"),

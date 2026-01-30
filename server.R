@@ -377,17 +377,19 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
 output$plotsTable<-renderTable ({
    if(is.null(input$colmnames)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
     RowNum<-input$numrows
-    
-    
-    data<-switch(input$tabRes, 
-                 "1"=matrix(TabRes()[,1], byrow=TRUE, nrow=RowNum),
-                 "2"=matrix(TabRes()[,2], byrow=TRUE, nrow=RowNum),
-                 "3"=matrix(TabRes()[,3], byrow=TRUE, nrow=RowNum),
-                 "4"=matrix(TabRes()[,4], byrow=TRUE, nrow=RowNum),
-                 "5"=matrix(TabRes()[,5], byrow=TRUE, nrow=RowNum), 
-                 "6"=matrix(TabRes()[,6], byrow=TRUE, nrow=RowNum),
-                 "7"=matrix(TabRes()[,7], byrow=TRUE, nrow=RowNum), 
-                 "8"=matrix(TabRes()[,8], byrow=TRUE, nrow=RowNum),
+    TabRes <- TabRes()
+   # "Sample", "First reading", "Lag time ", "Area under the curve",
+   # "Peak ", "ttPeak", "ttTail", "Lag reading"
+    data<-switch(input$tabRes,
+                 "Sample" = matrix(TabRes$Sample, byrow=TRUE, nrow=RowNum),
+                 "First reading"=matrix(TabRes$FirstReading, byrow=TRUE, nrow=RowNum),
+                 "Lag time"=matrix(TabRes$Lag, byrow=TRUE, nrow=RowNum),
+                 "Area under the curve"=matrix(TabRes$AUC, byrow=TRUE, nrow=RowNum),
+                 "Peak"=matrix(TabRes$Peak, byrow=TRUE, nrow=RowNum),
+                 "ttPeak"=matrix(TabRes$ttPeak, byrow=TRUE, nrow=RowNum), 
+                 "ttTail"=matrix(TabRes$ttTail, byrow=TRUE, nrow=RowNum),
+                 "Lag reading"=matrix(TabRes$LagReading, byrow=TRUE, nrow=RowNum) 
+                 
                
 
     )
@@ -423,7 +425,7 @@ output$myplotAll<-renderPlot({
   #if(is.null(input$colmnames)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
   plate0 <- readData()
   plateM<- a2MData()
-  
+  TabRes <- TabRes()
   Time<-round(plate0[,1], 2)
   #Datwells<-plate0[,-1]
   Datwells<-plate0 %>% select(-1)
