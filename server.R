@@ -1,5 +1,3 @@
-library(shiny)                             # Load the Shiny library
-
 #Code to increase size of downloaded files
 options(shiny.maxRequestSize=30*1024^2)
 
