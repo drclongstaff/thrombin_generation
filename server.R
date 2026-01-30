@@ -291,7 +291,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
       map_df(~fun_diff(.x, plateFC)) %>% add_column(plateFC[,1][-1], .before = 1) %>% as.data.frame()
     #The first derivative curves are converted to thrombin (T)
     plateFdT <- plateFd[-1] %>% 
-      map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column(plateFd[[1]], .before = 1) %>% as.data.frame()
+      map_df(~fun_FtoT(.x, input$CalibT, input$calSlope)) %>% add_column("time_d"=plateFd[[1]], .before = 1) %>% as.data.frame()
     #The Thrombin curves with late smoothing
     plateFdTs <- plateFdT[-1] %>% 
       map_df(~fun_latesmooth(.x, plateFdT,input$smtail )) %>% add_column(plateFdT[[1]], .before = 1) %>% as.data.frame()
@@ -349,7 +349,7 @@ shinyServer(function(input, output) {      # Set up the Shiny Server
       data.frame(
         Sample       = .y,
         FirstReading = resultsu[1],
-        Lag          = resultsu[2],
+        LagTime      = resultsu[2],
         LagReading   = resultsu[3],
         Peak         = resultsu[8],
         ttPeak       = resultsu[7],
@@ -383,7 +383,7 @@ output$plotsTable<-renderTable ({
     data<-switch(input$tabRes,
                  "Sample" = matrix(TabRes$Sample, byrow=TRUE, nrow=RowNum),
                  "First reading"=matrix(TabRes$FirstReading, byrow=TRUE, nrow=RowNum),
-                 "Lag time"=matrix(TabRes$Lag, byrow=TRUE, nrow=RowNum),
+                 "Lag time"=matrix(TabRes$LagTime, byrow=TRUE, nrow=RowNum),
                  "Area under the curve"=matrix(TabRes$AUC, byrow=TRUE, nrow=RowNum),
                  "Peak"=matrix(TabRes$Peak, byrow=TRUE, nrow=RowNum),
                  "ttPeak"=matrix(TabRes$ttPeak, byrow=TRUE, nrow=RowNum), 
@@ -427,8 +427,8 @@ output$myplotAll<-renderPlot({
   plateM<- a2MData()
   TabRes <- TabRes()
   Time<-round(plate0[,1], 2)
-  #Datwells<-plate0[,-1]
-  Datwells<-plate0 %>% select(-1)
+  Datwells<-plate0[,-1]
+  #Datwells<-plate0 %>% select(-1)
   # maxy <- max(Datwells)
   pointsnum<-length(Datwells[,1])-1
   absWells<-length(Datwells[1,])
@@ -446,7 +446,7 @@ output$myplotAll<-renderPlot({
     yi<- Datwells[,k] 
    
     plots<-plot(Time, yi, type = "l", col= "slategrey", lwd = 3, xaxt="n", yaxt="n",  ylim = c(min(Datwells), max(Datwells)))
-    lines(plateM[,1], plateM[,k+1],lwd=1, col = "orange")
+    lines(plateM[,1], plateM[,k+1],lwd=2, col = "orange")
     lines(Time[TabRes$Startpoint[k]: TabRes$Pointmax[k]], yi[TabRes$Startpoint[k]: TabRes$Pointmax[k]],col="green", lwd=3)
     lines(Time[TabRes$Pointmax[k]: TabRes$Decaypoint[k]], yi[TabRes$Pointmax[k]: TabRes$Decaypoint[k]],col="blue", lwd=3)
     lines(Time[TabRes$Decaypoint[k]: TabRes$Minpoint[k]], yi[TabRes$Decaypoint[k]: TabRes$Minpoint[k]],col="red", lwd=2)
@@ -454,7 +454,7 @@ output$myplotAll<-renderPlot({
     switch(input$tabRes,
            "First reading"= abline("h"=TabRes$FirstReading[k], col = "black", lty=2),
            "Peak"= abline("h"=TabRes$Peak[k], col = "black", lty=2),
-           "Lag time"= abline("v"=TabRes$Lag[k], col = "black", lty=2),
+           "Lag time"= abline("v"=TabRes$LagTime[k], col = "black", lty=2),
            "ttPeak"= abline("v"=TabRes$ttPeak[k], col = "black", lty=2),
            "ttTail"= abline("v"=TabRes$ttTail[k], col = "black", lty=2),
            "Lag reading"= abline("h"=TabRes$LagReading[k], col = "black", lty=2),
@@ -474,19 +474,19 @@ output$myplot<-renderPlot({
   TaM<-plateM[,input$colmnames]
   
   Time<-round(plate0[,1], 2)
-  #Datwells<-plate0[,-1]
-  Datwells<-plate0 %>% select(-1)
+  Datwells<-plate0[,-1]
+  #Datwells<-plate0 %>% select(-1)
   
   yi<-Datwells[,input$colmnames] # Rather than get and attach, this just reads in the column chosen earlier
   
-  k<-which(TabRes()[, 1]==input$colmnames)
+  k<-which(TabRes[, 1]==input$colmnames)
  
   mint<-min(Time)
   
  
     
     plots<-plot(Time, yi, type = "l", col= "slategrey", lwd = 3, ylim = c(min(Datwells), max(Datwells)*1.1), ylab = "Thrombin or Fluorescence")
-    lines(plateM[,1], plateM[,k+1],lwd=1, col = "orange")
+    lines(plateM[,1], plateM[,k+1],lwd=2, col = "orange")
     lines(Time[TabRes$Startpoint[k]: TabRes$Pointmax[k]], yi[TabRes$Startpoint[k]: TabRes$Pointmax[k]],col="green", lwd=3)
     lines(Time[TabRes$Pointmax[k]: TabRes$Decaypoint[k]], yi[TabRes$Pointmax[k]: TabRes$Decaypoint[k]],col="blue", lwd=3)
     lines(Time[TabRes$Decaypoint[k]: TabRes$Minpoint[k]], yi[TabRes$Decaypoint[k]: TabRes$Minpoint[k]],col="red", lwd=2)
@@ -494,7 +494,7 @@ output$myplot<-renderPlot({
   
     abline("h"=TabRes$FirstReading[k], col = "black", lty=2)
     abline("h"=TabRes$Peak[k], col = "black", lty=2)
-    abline("v"=TabRes$Lag[k], col = "black", lty=2)
+    abline("v"=TabRes$LagTime[k], col = "black", lty=2)
     abline("v"=TabRes$ttPeak[k], col = "black", lty=2)
     abline("v"=TabRes$ttTail[k], col = "black", lty=2)
     abline("h"=TabRes$LagReading[k], col = "black", lty=2)
@@ -506,7 +506,7 @@ output$curveTable<-renderTable({
   TabNames<-colnames(TabRes())
   ColNam<-c("Parameter", "Result")
   
-  All.Res<-TabRes() %>% filter(Sample == input$colmnames) %>% select(1:8)
+  All.Res<-TabRes() |>  filter(Sample == input$colmnames) %>% select(1:8)
   All.Res.Tab<-cbind(TabNames[1:8], t(All.Res))
   colnames(All.Res.Tab)<-ColNam
   

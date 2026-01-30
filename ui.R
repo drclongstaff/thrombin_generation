@@ -99,8 +99,8 @@ fluidPage( # Setup the UI page
           radioButtons(
             inputId = "tabRes", label = h4("Select parameter", align = "center"),
             choices = c(
-              "Sample", "First reading", "Lag time", "Area under the curve",
-              "Peak", "ttPeak", "ttTail", "Lag reading"
+              "Sample", "First reading", "Lag time", "Lag reading", 
+              "Peak", "ttPeak", "ttTail", "Area under the curve"
             ),
             selected = "Lag time", inline = TRUE, width = "100%"
           ),
