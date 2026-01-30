@@ -442,40 +442,35 @@ output$myplotAll<-renderPlot({
   
   mint<-min(Time)
   for(k in seq_len(absWells)){
-  #for (k in 1: absWells ) {
     
     yi<- Datwells[,k] 
-    #t<-Time
-    
+   
     plots<-plot(Time, yi, type = "l", col= "slategrey", lwd = 3, xaxt="n", yaxt="n",  ylim = c(min(Datwells), max(Datwells)))
     lines(plateM[,1], plateM[,k+1],lwd=1, col = "orange")
-    #lines(platedT()[,1], platedT()[, k+1], lty=2, col = "green")#shows thrombin curve
-    lines(Time[TabRes()[k,9]:TabRes()[k,10]], yi[TabRes()[k,9]:TabRes()[k,10]],col="green", lwd=3)
-    lines(Time[TabRes()[k,10]:TabRes()[k,11]], yi[TabRes()[k,10]:TabRes()[k,11]],col="blue", lwd=3)
-    lines(Time[TabRes()[k,11]:TabRes()[k,12]], yi[TabRes()[k,11]:TabRes()[k,12]],col="red", lwd=2)
+    lines(Time[TabRes$Startpoint[k]: TabRes$Pointmax[k]], yi[TabRes$Startpoint[k]: TabRes$Pointmax[k]],col="green", lwd=3)
+    lines(Time[TabRes$Pointmax[k]: TabRes$Decaypoint[k]], yi[TabRes$Pointmax[k]: TabRes$Decaypoint[k]],col="blue", lwd=3)
+    lines(Time[TabRes$Decaypoint[k]: TabRes$Minpoint[k]], yi[TabRes$Decaypoint[k]: TabRes$Minpoint[k]],col="red", lwd=2)
     
     switch(input$tabRes,
-           "2"= abline("h"=TabRes()[k,2], col = "black", lty=2),
-           "5"= abline("h"=TabRes()[k,5], col = "black", lty=2),
-           "3"= abline("v"=TabRes()[k,3], col = "black", lty=2),
-           "6"= abline("v"=TabRes()[k,6], col = "black", lty=2),
-           "7"= abline("v"=TabRes()[k,7], col = "black", lty=2),
-           "8"= abline("h"=TabRes()[k,8], col = "magenta", lty=2),
-           "10"= abline("v"=TabRes()[k,10], col = "blue", lty=1),
-           "4"=polygon(Time[TabRes()[k,9]: TabRes()[k,11]], yi[TabRes()[k,9]: TabRes()[k,11]], col = "khaki")
-           #"4"=polygon(Time[1: TabRes()[k,12]], yi[1: TabRes()[k,12]], col = "khaki")
-           
+           "First reading"= abline("h"=TabRes$FirstReading[k], col = "black", lty=2),
+           "Peak"= abline("h"=TabRes$Peak[k], col = "black", lty=2),
+           "Lag time"= abline("v"=TabRes$Lag[k], col = "black", lty=2),
+           "ttPeak"= abline("v"=TabRes$ttPeak[k], col = "black", lty=2),
+           "ttTail"= abline("v"=TabRes$ttTail[k], col = "black", lty=2),
+           "Lag reading"= abline("h"=TabRes$LagReading[k], col = "black", lty=2),
+           "Area under the curve"=polygon(Time[TabRes$Startpoint[k]: TabRes$Decaypoint[k]], yi[TabRes$Startpoint[k]: TabRes$Decaypoint[k]], col = "khaki")
     )          
   }
   
 })
-
+# "Sample", "First reading", "Lag time ", "Area under the curve",
+# "Peak ", "ttPeak", "ttTail", "Lag reading"
 #plot for single curve
 output$myplot<-renderPlot({
   if(is.null(input$colmnames)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
   plate0 <- readData()
   plateM<- a2MData()
-  
+  TabRes <- TabRes()
   TaM<-plateM[,input$colmnames]
   
   Time<-round(plate0[,1], 2)
@@ -492,22 +487,17 @@ output$myplot<-renderPlot({
     
     plots<-plot(Time, yi, type = "l", col= "slategrey", lwd = 3, ylim = c(min(Datwells), max(Datwells)*1.1), ylab = "Thrombin or Fluorescence")
     lines(plateM[,1], plateM[,k+1],lwd=1, col = "orange")
-    #lines(platedT()[,1], platedT()[, k+1], lty=2, col = "green")
-    lines(Time[TabRes()[k,9]:TabRes()[k,10]], yi[TabRes()[k,9]:TabRes()[k,10]],col="green", lwd=3)
-    lines(Time[TabRes()[k,10]:TabRes()[k,11]], yi[TabRes()[k,10]:TabRes()[k,11]],col="blue", lwd=3)
-    lines(Time[TabRes()[k,11]:TabRes()[k,12]], yi[TabRes()[k,11]:TabRes()[k,12]],col="red", lwd=2)
+    lines(Time[TabRes$Startpoint[k]: TabRes$Pointmax[k]], yi[TabRes$Startpoint[k]: TabRes$Pointmax[k]],col="green", lwd=3)
+    lines(Time[TabRes$Pointmax[k]: TabRes$Decaypoint[k]], yi[TabRes$Pointmax[k]: TabRes$Decaypoint[k]],col="blue", lwd=3)
+    lines(Time[TabRes$Decaypoint[k]: TabRes$Minpoint[k]], yi[TabRes$Decaypoint[k]: TabRes$Minpoint[k]],col="red", lwd=2)
     
   
-           "2"= abline("h"=TabRes()[k,2], col = "black", lty=2)
-           "5"= abline("h"=TabRes()[k,5], col = "black", lty=2)
-           "3"= abline("v"=TabRes()[k,3], col = "black", lty=2)
-           "6"= abline("v"=TabRes()[k,6], col = "black", lty=2)
-           "7"= abline("v"=TabRes()[k,7], col = "black", lty=2)
-           "8"= abline("h"=TabRes()[k,8], col = "magenta", lty=2)
-           #"10"= abline("v"=TabRes()[k,10], col = "blue", lty=1)
-           # "4"=polygon(Time[TabRes()[k,9]: TabRes()[k,11]], yi[TabRes()[k,9]: TabRes()[k,11]], col = "grey80")
-           #"4"=polygon(Time[1: TabRes()[k,12]], yi[1: TabRes()[k,12]], col = "grey90")
-           
+    abline("h"=TabRes$FirstReading[k], col = "black", lty=2)
+    abline("h"=TabRes$Peak[k], col = "black", lty=2)
+    abline("v"=TabRes$Lag[k], col = "black", lty=2)
+    abline("v"=TabRes$ttPeak[k], col = "black", lty=2)
+    abline("v"=TabRes$ttTail[k], col = "black", lty=2)
+    abline("h"=TabRes$LagReading[k], col = "black", lty=2)
   
 })
 
@@ -516,8 +506,8 @@ output$curveTable<-renderTable({
   TabNames<-colnames(TabRes())
   ColNam<-c("Parameter", "Result")
   
-  All.Res<-TabRes() %>% filter(Sample == input$colmnames) %>% select(1:7)
-  All.Res.Tab<-cbind(TabNames[1:7], t(All.Res))
+  All.Res<-TabRes() %>% filter(Sample == input$colmnames) %>% select(1:8)
+  All.Res.Tab<-cbind(TabNames[1:8], t(All.Res))
   colnames(All.Res.Tab)<-ColNam
   
   All.Res.Tab
