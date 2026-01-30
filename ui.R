@@ -99,7 +99,7 @@ fluidPage( # Setup the UI page
           radioButtons(
             inputId = "tabRes", label = h4("Select parameter", align = "center"),
             choices = c(
-              "Sample", "First reading", "Lag time", "Lag reading", 
+              "Sample", "First reading", "Lag time", "Lag reading",
               "Peak", "ttPeak", "ttTail", "Area under the curve"
             ),
             selected = "Lag time", inline = TRUE, width = "100%"
@@ -130,7 +130,8 @@ fluidPage( # Setup the UI page
           tableOutput("calData"),
           align = "center"
         ),
-        tabPanel("Settings",
+        tabPanel(
+          "Settings",
           helpText(h5(paste("Simple thrombin generation app version number", Thisversion))),
           helpText(h5(format(Sys.Date(), "%d %b %Y"), ",", format(Sys.time(), "%X"))),
           fluidRow(
@@ -146,7 +147,7 @@ fluidPage( # Setup the UI page
           ),
           tags$h5("Other packages"),
           tableOutput("session"),
-          #align = "center"
+          # align = "center"
         ),
         tabPanel(
           "Help",
