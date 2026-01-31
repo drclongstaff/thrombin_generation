@@ -274,7 +274,6 @@ shinyServer(function(input, output) { # Set up the Shiny Server
       "Polynomial" = plateFT <- RawFP()
     )
 
-    # for (f in 1: absWellsF ) {
     for (f in seq_len(absWellsF)) {
       yi <- DatwellsF[, f]
 
