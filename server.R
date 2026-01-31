@@ -278,12 +278,11 @@ shinyServer(function(input, output) { # Set up the Shiny Server
       yi <- DatwellsF[, f]
 
       plots <- plot(TimeF, yi,
-        type = "l", col = "blue", lwd = 2, ylim = c(0, max(plateFT, na.rm = TRUE)), bty = "n",
-        main = maxF
+        type = "l", col = "blue", lwd = 2, ylim = c(0, max(plateFT, na.rm = TRUE)), bty = "n"
       )
       lines(plateFT[[1]], plateFT[[f + 1]], lwd = 1, col = "red")
       mtext(round(max(yi, na.rm = TRUE), 2),
-        side = 3, line = -1.5, adj = 0,
+        side = 3, line = -1.5, adj = 0.1,
         cex = 0.8, col = "grey25"
       ) # Bigger and bright red
     }
