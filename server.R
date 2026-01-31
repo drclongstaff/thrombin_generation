@@ -260,13 +260,14 @@ shinyServer(function(input, output) { # Set up the Shiny Server
 
     absWellsF <- length(DatwellsF[1, ])
     samplesF <- names(DatwellsF)
-    maxF <- max(DatwellsF)
-    maxT <- max(TimeF)
+    maxF <- max(DatwellsF, na.rm = TRUE)
+    maxT <- max(TimeF, na.rm = TRUE)
 
     RowNumF <- input$numrows
 
     par(mfrow = c(RowNumF, (absWellsF / RowNumF)))
-    par(mar = c(0.6, 3.2, 0.2, 0.2)) # dimensions for figure
+    par(mar = c(0.6, 3, 0.2, 0.2)) # dimensions for figure
+    par(xpd = TRUE)
 
     switch(input$Transf,
       "none" = plateFT <- RawF(),
@@ -278,13 +279,12 @@ shinyServer(function(input, output) { # Set up the Shiny Server
       yi <- DatwellsF[, f]
 
       plots <- plot(TimeF, yi,
-        type = "l", col = "blue", lwd = 2, xlim = c(0, maxT),
-        ylim = c(0, max(plateFT[-1])), axes = FALSE
-      )
-      axis(1, seq(0, maxT, maxT), pos = 0)
-      axis(2, seq(0, maxF, maxF), las = 2, pos = 0, cex.axis = 1.2, col.axis = "red")
-      lines(plateFT[, 1], plateFT[, f + 1], lwd = 1, col = "red")
-      text(maxT * .1, maxF * .8, samplesF[f])
+        type = "l", col = "blue", lwd = 2, ylim = c(0, max(plateFT, na.rm=TRUE)), bty="n",
+         main = maxF)
+      lines(plateFT[[1]], plateFT[[f+1]], lwd = 1, col = "red")
+      mtext(round(max(yi, na.rm=TRUE), 2), 
+            side = 3, line = -1.5, adj = 0, 
+            cex = 0.8, col = "grey25")  # Bigger and bright red
     }
   })
 
