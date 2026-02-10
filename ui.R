@@ -73,7 +73,8 @@ fluidPage( # Setup the UI page
       fluidRow(
         column(4, numericInput("lagChange", label = "% change for start", value = 10, step = 1)),
         column(3, numericInput("smtail", label = "smooth tail", value = 5)),
-        column(5, radioButtons(inputId = "a2Mcor", label = "Display", choices = c("F", "Thrombin", "Smooth.tail", "Smooth.all", "-T-alpha-2M"), selected = "Thrombin"))
+        column(5, radioButtons(inputId = "a2Mcor", label = "Display", 
+                               choices = c("F", "Thrombin", "Smooth.late", "Smooth.all","Smooth.tail", "-T-alpha-2M"), selected = "Thrombin"))
       )
     ),
     mainPanel(

@@ -12,6 +12,14 @@ fun_latesmooth<-function(ps, plateF, smtail){
   ifelse(Tdif>lateTime, smoothfit$y, ps)
 }
 
+#part smoothing
+#In this case smoothing takes place a few points after the peak
+fun_partsmooth<-function(pa, plateF){
+  Tdif<-plateF[,1]
+  smoothfit<-supsmu(Tdif, pa)
+  ifelse(Tdif<Tdif[which.max(pa)]+5, pa, smoothfit$y)
+}
+
 #all smoothing
 fun_allsmooth <- function(as, plateF){
   #Tdif<-plateF[,1][-1]

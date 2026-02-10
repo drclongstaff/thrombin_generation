@@ -304,6 +304,11 @@ shinyServer(function(input, output) { # Set up the Shiny Server
       map_df(~ fun_latesmooth(.x, plateFdT, input$smtail)) %>%
       add_column(plateFdT[[1]], .before = 1) %>%
       as.data.frame()
+    # The thrombin curves with part smoothing (after the peak)
+    plateFdTr <- plateFdT[-1] %>%
+      map_df(~ fun_partsmooth(.x, plateFdT)) %>%
+      add_column(plateFdT[[1]], .before = 1) %>%
+      as.data.frame()
     # The thrombin curves with all smoothing
     plateFdTa <- plateFdT[-1] %>%
       map_df(~ fun_allsmooth(.x, plateFdT)) %>%
@@ -319,7 +324,8 @@ shinyServer(function(input, output) { # Set up the Shiny Server
     switch(input$a2Mcor,
       "F" = plateN <- plateFd, # first derivative of fluorescence
       "Thrombin" = plateN <- plateFdT, # converted to thrombin
-      "Smooth.all" = plateN <- plateFdTa, # allsmooth curve?
+      "Smooth.late" = plateN <- plateFdTr,
+      "Smooth.all" = plateN <- plateFdTa, # allsmooth curve or after peak smooth?
       "Smooth.tail" = plateN <- plateFdTs, # latesmooth curve?
       "-T-alpha-2M" = plateN <- plateFdTsM
     )
