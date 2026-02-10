@@ -25,13 +25,11 @@ shinyServer(function(input, output) { # Set up the Shiny Server
 
   # Generate the calibrator dataframe and add means
   select_cols <- reactive({
-    req(input$select_cols)
     sel <- as.numeric(strsplit(input$select_cols, ",")[[1]])
     sel
   })
   # make list of wells to show
   col_names <- reactive({
-    req(input$select_cols, data())
     colnames(data())[select_cols()]
   })
 
@@ -42,22 +40,16 @@ shinyServer(function(input, output) { # Set up the Shiny Server
     myCals[1:input$limitD, ]
   })
 
-  # Get calibrator column names
-  varCal <- reactive({
-    calCols <- colnames(CalibF()[-1]) # remember to remove the first Time column
-  })
-
   # Choose calibrator to analyse
   output$whatCal <- renderUI({
     selectInput("calCols",
       label = "curve",
-      choices = varCal()
+      choices = colnames(CalibF()[-1]) # remember to remove the first Time column
     )
   })
 
   # CalibDat is the selected calibration curve
   CalibDat <- reactive({
-    # req(CalibF())
     CalibDat <- data.frame("Time" = CalibF()[[1]], "F" = CalibF()[[input$calCols]])
   })
 
@@ -134,8 +126,7 @@ shinyServer(function(input, output) { # Set up the Shiny Server
   # Graph of fitted calibrator
   # changed CalibDat to CalibF
   output$myCalib <- renderPlot({
-    # req(CalibDat())
-    # if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
+    if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
     minX <- as.double(min(CalibDat()[1], na.rm = TRUE))
     minY <- as.double(min(CalibDat()[2], na.rm = TRUE))
     maxX <- as.double(max(CalibDat()[1], na.rm = TRUE))
@@ -155,8 +146,7 @@ shinyServer(function(input, output) { # Set up the Shiny Server
 
   # Calibrator-test of fitting-plots
   output$mytest <- renderPlot({
-    # req(CalibDat())
-    # if(is.null(CalibDat())){return(NULL)}
+    if(is.null(input$calCols)){return(NULL)} # To stop this section running and producing an error before the data has uploaded
     par(mfrow = c(2, 2)) # Split the plotting panel into a 2 x 2 grid
     # Fit the polynomial again to get the $fitted and $residuals and plot
     Yobs <- CalibDat()[, 2]
@@ -197,13 +187,11 @@ shinyServer(function(input, output) { # Set up the Shiny Server
     }
   })
   select_samples <- reactive({
-    req(input$select_samples)
     sel <- as.numeric(strsplit(input$select_samples, ",")[[1]])
     sel
   })
   # make list of wells to show
   samples_names <- reactive({
-    req(input$select_samples, RawF0())
     colnames(data())[select_samples()]
   })
 
@@ -212,10 +200,6 @@ shinyServer(function(input, output) { # Set up the Shiny Server
   RawF <- reactive({
     RawF0A <- RawF0()[c(1, select_samples())]
     RawF1 <- RawF0A[1:(nrow(RawF0()) - input$truncpoints), ]
-  })
-
-  output$value <- renderUI({
-    print(14)
   })
 
   # This is for the settings table state calibrators
@@ -283,8 +267,9 @@ shinyServer(function(input, output) { # Set up the Shiny Server
       lines(plateFT[[1]], plateFT[[f + 1]], lwd = 1, col = "red")
       mtext(round(max(yi, na.rm = TRUE), 2),
         side = 3, line = -1.5, adj = 0.1,
-        cex = 0.8, col = "grey25"
+        cex = 0.8, col = "magenta"
       ) # Bigger and bright red
+      text(maxT*.1, maxF*.8, samplesF[f])
     }
   })
 
@@ -406,9 +391,7 @@ shinyServer(function(input, output) { # Set up the Shiny Server
   })
 
   output$plotsTable <- renderTable({
-    if (is.null(input$colmnames)) {
-      return(NULL)
-    } # To stop this section running and producing an error before the data has uploaded
+    #if (is.null(input$colmnames)) {return(NULL)} # To stop this section running and producing an error before the data has uploaded
     RowNum <- input$numrows
     TabRes <- TabRes()
     # "Sample", "First reading", "Lag time ", "Area under the curve",
@@ -431,24 +414,25 @@ shinyServer(function(input, output) { # Set up the Shiny Server
   ## Plot of single curve
   # Also need to select well
 
-  var <- reactive({
-    colnames(readData()[-1])
-  })
+  #var <- reactive({
+   # colnames(readData()[-1])
+  #})
 
 
   output$what <- renderUI({
     selectInput("colmnames",
       label = h5("Select a column of absorbance data"),
-      choices = var()
+      #choices = var()
+      choices = colnames(readData()[-1])
     )
   })
 
-  output$nowwhat <- renderUI({
-    selectInput("colmnames",
-      label = h5("Copy a column of absorbance data"),
-      choices = var()
-    )
-  })
+  #output$nowwhat <- renderUI({
+   # selectInput("colmnames",
+    #  label = h5("Copy a column of absorbance data"),
+    #  choices = var()
+   # )
+  #})
 
   ## Plot the curves
   output$myplotAll <- renderPlot({

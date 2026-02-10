@@ -16,7 +16,7 @@ source("./Functions/Deriv_curve_analysis.R")
 source("./Functions/Deriv_curves.R")
 source("./Functions/Smooth_alpha2M.R")
 
-Thisversion <- "1.001ex4"
+Thisversion <- "1.002x4"
 thematic::thematic_shiny()
 
 fluidPage( # Setup the UI page
